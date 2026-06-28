@@ -304,6 +304,51 @@ button:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
 .mapOverlay.night .menu{display:none !important}
 .mapOverlay.night .nightBox{display:block !important}
 
+
+.sealList{display:grid;gap:7px;margin-top:9px}
+.sealItem{
+  display:flex;align-items:center;gap:7px;
+  background:rgba(255,250,240,.86);
+  border:1px solid rgba(96,61,28,.12);
+  border-radius:14px;
+  padding:7px 9px;
+  font-size:13px;
+  font-weight:850;
+}
+.sealItem.done{background:#e8f3d9;color:#3e5d2c}
+.sealItem.miss{background:#f8eadc;color:#7a4b36}
+
+
+/* cleaner location alignment and compact fog */
+.hotspot.locked{
+  width:118px !important;
+  height:92px !important;
+}
+.hotspot.locked .locLabel{display:none !important}
+.fogPatch{
+  width:118px !important;
+  height:86px !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  backdrop-filter:none !important;
+  pointer-events:none;
+}
+.fogCloud{
+  background:rgba(240,247,251,.96) !important;
+  box-shadow:0 7px 12px rgba(40,24,10,.12), inset 0 0 14px rgba(255,255,255,.85) !important;
+}
+.fogCloud.c1{width:64px !important;height:34px !important;left:17px !important;top:27px !important}
+.fogCloud.c2{width:46px !important;height:42px !important;left:10px !important;top:16px !important}
+.fogCloud.c3{width:48px !important;height:44px !important;right:13px !important;top:16px !important}
+.fogCloud.c4{width:72px !important;height:30px !important;left:23px !important;bottom:16px !important}
+.fogCloud.c5{width:38px !important;height:28px !important;right:5px !important;bottom:27px !important}
+.fogCloud.c6{width:38px !important;height:26px !important;left:42px !important;top:4px !important}
+.fogIcons{margin-top:18px !important}
+.fogText{
+  padding:3px 8px !important;
+  font-size:11px !important;
+}
+
 @media(max-width:1260px){
   .layout{grid-template-columns:1fr}
   .brand{white-space:normal}
@@ -414,15 +459,15 @@ button:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
 
 <script>
 const places=[
-{id:"forest",x:15,y:29,emoji:"🌲",name:"Лес",short:"дерево"},
-{id:"field",x:14,y:52,emoji:"🌾",name:"Поле",short:"еда"},
-{id:"castle",x:40,y:35,emoji:"🏰",name:"Замок",short:"идеи"},
-{id:"village",x:58,y:58,emoji:"🛖",name:"Деревня",short:"жители"},
-{id:"river",x:71,y:47,emoji:"🌉",name:"Река",short:"мост"},
-{id:"road",x:76,y:75,emoji:"🛤",name:"Дорога",short:"разведка"},
-{id:"mountains",x:61,y:24,emoji:"⛰",name:"Горы",short:"монеты"},
-{id:"tower",x:87,y:30,emoji:"⭐",name:"Башня",short:"финал"},
-{id:"cave",x:14,y:77,emoji:"🕯",name:"Пещера",short:"загадки"}
+{id:"forest",x:15,y:22,emoji:"🌲",name:"Лес",short:"дерево"},
+{id:"field",x:15,y:52,emoji:"🌾",name:"Поле",short:"еда"},
+{id:"castle",x:39,y:30,emoji:"🏰",name:"Замок",short:"идеи"},
+{id:"village",x:58,y:63,emoji:"🛖",name:"Деревня",short:"жители"},
+{id:"river",x:66,y:44,emoji:"🌉",name:"Река",short:"мост"},
+{id:"road",x:78,y:72,emoji:"🛤",name:"Дорога",short:"маршрут"},
+{id:"mountains",x:61,y:20,emoji:"⛰",name:"Горы",short:"монеты"},
+{id:"tower",x:87,y:25,emoji:"⭐",name:"Башня",short:"финал"},
+{id:"cave",x:17,y:77,emoji:"🕯",name:"Пещера",short:"загадки"}
 ];
 const revealOrder=["village","river","road","mountains","cave","tower"];
 const descriptions={
@@ -431,10 +476,10 @@ field:"Здесь собирают еду. Ферма даст больше ур
 castle:"Центр королевства. Здесь появляются идеи и строится стена.",
 village:"Здесь живут помощники. Домик жителей даст +1 ход каждый день.",
 river:"Тут можно построить мост. Он поможет во время дождя.",
-road:"С дороги удобно быстро открывать новые земли.",
+road:"Старая дорога разведчиков связывает земли королевства. Если восстановить маршрут, исследовать туман станет проще.",
 mountains:"В горах можно искать монеты.",
 cave:"В пещере спрятаны загадки и награды.",
-tower:"Здесь строится Башня стратега."
+tower:"Башня стратега стоит в самом дальнем краю. Путь к ней появится только когда королевство снова будет связано дорогой, мостом, деревней и мудростью пещеры."
 };
 const buildings=[
 {id:"sawmill",icon:"🪵",name:"Лесопилка",place:"forest",cost:{wood:3},text:"Лес даёт 3 дерева.",medal:"woodmaster"},
@@ -489,7 +534,7 @@ const objectivesByDay={
 1:["🎯 Собери дерево и еду","🎯 Построй первое улучшение"],
 2:["🎯 Разведай туман","🎯 Найди деревню жителей"],
 3:["🎯 Помоги жителям","🎯 Подумай про Домик жителей"],
-4:["🎯 Открой реку или дорогу","🎯 Накопи дерево на мост"],
+4:["🎯 Открой дорогу разведчиков","🎯 Накопи дерево на мост"],
 5:["🎯 Исследуй горы или пещеру","🎯 Собери монеты"],
 6:["🎯 Подготовь ресурсы","🎯 Ищи Башню стратега"],
 7:["🎯 Собери всё нужное","🎯 Построй Башню стратега"]
@@ -498,7 +543,7 @@ const objectivesByDay={
 let state={
 started:false,heroName:"Герой",day:1,moves:3,maxMoves:3,wood:2,food:2,coins:0,ideas:0,
 open:{forest:true,field:true,castle:true},built:{},medals:{},selected:"castle",heroAt:"castle",
-blockedForest:false,helperCount:0,puzzleCount:0,exploreCount:0,won:false,
+blockedForest:false,routeReady:false,helperCount:0,puzzleCount:0,exploreCount:0,won:false,
 log:["Игра началась. Открыты лес, поле и замок."]
 };
 
@@ -586,7 +631,7 @@ function renderHotspots(){
       const builtIcon=builtHere?`<div class="placeBuiltOnMap" onclick="event.stopPropagation(); openBuildingInfo('${builtHere.id}')"><img src="${buildAsset(builtHere.id)}" alt="" title="${builtHere.name}"></div>`:"";
       d.innerHTML=`<div class="locLabel">${p.emoji} ${p.name}</div>${builtIcon}`;
     }else{
-      d.innerHTML=`<div class="fogPatch"><div class="fogCloud c1"></div><div class="fogCloud c2"></div><div class="fogCloud c3"></div><div class="fogCloud c4"></div><div class="fogCloud c5"></div><div class="fogCloud c6"></div><div class="fogIcons"><img src="icon_fog.png" alt=""><img src="icon_locked.png" alt=""></div><div class="fogText">Скрыто</div></div><div class="locLabel">☁️ Туман</div>`;
+      d.innerHTML=`<div class="fogPatch"><div class="fogCloud c1"></div><div class="fogCloud c2"></div><div class="fogCloud c3"></div><div class="fogCloud c4"></div><div class="fogCloud c5"></div><div class="fogCloud c6"></div><div class="fogIcons"><img src="icon_fog.png" alt=""><img src="icon_locked.png" alt=""></div><div class="fogText">Скрыто</div></div>`;
     }
     wrap.appendChild(d);
   });
@@ -633,10 +678,10 @@ function renderMenu(){
   if(p.id==="castle"){addAction("Взять идею","green",collectIdea);addAction("Построить стену · 🪵3 🪙2","brown",()=>build("wall"),state.built.wall||!canPay({wood:3,coins:2}))}
   if(p.id==="village"){addAction("Помочь жителю","green",villageQuest);addAction("Построить домик · 🪵3 🪙1","brown",()=>build("house"),state.built.house||!canPay({wood:3,coins:1}))}
   if(p.id==="river"){if(state.built.bridge)addAction("Собрать пошлину · +🪙1","green",checkBridge);else addAction("Построить мост · 🪵4","brown",()=>build("bridge"),!canPay({wood:4}))}
-  if(p.id==="road")addAction("Быстрая разведка","blue",fastExplore);
+  if(p.id==="road")addAction(state.routeReady?"Открыть землю по дороге":"Восстановить маршрут","blue",fastExplore);
   if(p.id==="mountains")addAction("Искать монеты","green",collectCoins);
-  if(p.id==="cave")addAction("Решить загадку","blue",puzzle);
-  if(p.id==="tower")addAction("Строить башню · 🪵5 🍎5 🪙3 ⭐3","blue",()=>build("towerBuild"),state.built.towerBuild||!canPay({wood:5,food:5,coins:3,ideas:3}));
+  if(p.id==="cave")addAction("Решить загадку · печать мудрости","blue",puzzle);
+  if(p.id==="tower"){addAction("Проверить условия башни","blue",openTowerRequirements,false);addAction("Строить башню · 🪵5 🍎5 🪙3 ⭐3","blue",()=>build("towerBuild"),state.built.towerBuild||!canBuildTower());}
 }
 function addAction(label,cls,fn,disabled){const b=document.createElement("button");b.textContent=label;b.className=cls||"";b.disabled=!!disabled;b.onclick=fn;document.getElementById("actions").appendChild(b)}
 function collectWood(){if(!spendMove())return;state.heroAt="forest";if(state.blockedForest){state.blockedForest=false;addLog("Тропинку в лес расчистили после дождя.")}else{const n=state.built.sawmill?3:2;state.wood+=n;addLog("В лесу собрали 🪵 "+n+".")}render()}
@@ -645,6 +690,13 @@ function collectIdea(){if(!spendMove())return;state.heroAt="castle";state.ideas+
 function collectCoins(){if(!spendMove())return;state.heroAt="mountains";state.coins+=2;addLog("В горах нашли 🪙 2 монеты.");render()}
 function checkBridge(){if(!spendMove())return;state.heroAt="river";state.coins++;addLog("Путники прошли по мосту и оставили пошлину: +🪙 1.");showModal(`<h3>🌉 Мост пригодился</h3><img class="modalEventImg" src="building_bridge.png" alt=""><p>По мосту прошли путники и оставили маленькую благодарность королевству. Получено: 🪙 1.</p>`,[{text:"Хорошо",cls:"green",fn:closeModal}]);render()}
 function explore(id){
+  if(id==="tower"){
+    const allOthers=places.filter(p=>p.id!=="tower").every(p=>state.open[p.id]);
+    if(!allOthers){
+      showModal(`<h3>⭐ Башня скрыта глубже тумана</h3><p>Разведчики видят вдали высокий силуэт, но путь к нему не откроется, пока остальные земли королевства не найдены.</p><p>Сначала открой деревню, реку, дорогу, горы и пещеру.</p>`,[{text:"Понял",cls:"green",fn:closeModal}]);
+      return;
+    }
+  }
   if(state.food<1){toast("Нужна 🍎 1 еда");return}
   if(!spendMove())return;
   state.food--;
@@ -659,16 +711,42 @@ function explore(id){
   showModal(`<h3>☁️ Туман рассеялся</h3><p>Разведчики вернулись с хорошими новостями: на карте открылась новая локация — <b>${p.emoji} ${p.name}</b>.</p><p>${descriptions[p.id]}</p>`,[{text:"На карту",cls:"green",fn:closeModal}]);
 }
 function fastExplore(){
-  if(!spendMove())return;
-  const next=revealOrder.find(id=>!state.open[id]);
-  if(!next){state.moves++;toast("Вся карта открыта");return}
-  state.open[next]=true;state.selected=next;state.heroAt=next;
+  if(!state.routeReady){
+    if(!spendMove())return;
+    state.heroAt="road";
+    state.routeReady=true;
+    addLog("Старая дорога разведчиков восстановлена. Теперь разведка стала проще.");
+    showModal(`<h3>🛤 Дорога разведчиков</h3>
+      <img class="modalEventImg" src="location_road.png" alt="">
+      <p>Герой нашёл старые указатели и расчистил тропу. Теперь разведчики знают, куда идти, и туман открывается легче.</p>
+      <p><b>Эффект:</b> одна скрытая локация открывается сразу, без траты еды.</p>`,[{text:"Открыть путь",cls:"green",fn:()=>{closeModal();roadRevealBonus();}}]);
+    render();
+    return;
+  }
+  roadRevealBonus();
+}
+function roadRevealBonus(){
+  const next=revealOrder.find(id=>!state.open[id]&&id!=="tower");
+  if(!next){
+    toast("Дорога уже помогла открыть основные земли");
+    render();
+    return;
+  }
+  state.open[next]=true;
+  state.selected=next;
+  state.heroAt=next;
   const p=places.find(x=>x.id===next);
-  addLog("Разведчики прошли по старой дороге и открыли: "+p.emoji+" "+p.name+".");
-  checkMedals();render();
+  addLog("По старой дороге разведчики нашли: "+p.emoji+" "+p.name+".");
+  checkMedals();
+  render();
+  showModal(`<h3>🛤 Разведчики нашли путь</h3><p>Старая дорога вывела героя к новой земле: <b>${p.emoji} ${p.name}</b>.</p><p>${descriptions[p.id]}</p>`,[{text:"На карту",cls:"green",fn:closeModal}]);
 }
 function build(id){
   const b=buildings.find(x=>x.id===id);
+  if(id==="towerBuild"&&!canBuildTower()){
+    openTowerRequirements();
+    return;
+  }
   if(!state.open[b.place]){toast("Сначала открой локацию");return}
   if(!canPay(b.cost)){toast("Не хватает ресурсов");return}
   if(!spendMove())return;
@@ -708,7 +786,7 @@ function puzzle(){
     {q:"Для башни не хватает идей. Куда идти?",a:["В замок","На реку","В горы"],ok:0,r:()=>{state.ideas+=2}}
   ][state.puzzleCount%3];
   showModal(`<h3>🕯 Загадка</h3><p>${p.q}</p>`,p.a.map((ans,i)=>({
-    text:ans,cls:i===p.ok?"green":"brown",fn:()=>{if(i===p.ok){p.r();state.puzzleCount++;addLog("Загадка решена!");checkMedals()}else addLog("Ответ не подошёл.");closeModal();render()}
+    text:ans,cls:i===p.ok?"green":"brown",fn:()=>{if(i===p.ok){p.r();state.puzzleCount++;addLog("Загадка решена! Пещера дала часть мудрости.");if(state.puzzleCount>=2){showAchievement({icon:"🕯",name:"Печать мудрости получена"});}checkMedals()}else addLog("Ответ не подошёл.");closeModal();render()}
   })));
 }
 function endDay(){
@@ -735,11 +813,14 @@ function endDay(){
 }
 function nightEvent(t,txt,done,imgKey){showModal(`<h3>🌙 ${t}</h3>${eventImg(imgKey)}<p>${txt}</p><p><b>☀️ Наступает новый день.</b></p>`,[{text:"Новое утро",cls:"green",fn:()=>{closeModal();done()}}])}
 function smartTip(){
-  if(!state.open.village)return"Разведка нужна не просто так: в тумане спрятана Деревня. Там можно построить Домик жителей и получить 4 хода в день.";
+  if(!state.open.village)return"Разведка нужна не просто так: в тумане спрятана Деревня. Там можно получить помощь жителей и 4 хода в день.";
   if(state.open.village&&!state.built.house)return"Построй Домик жителей в Деревне — это главное раннее улучшение, оно даст +1 ход каждый день.";
-  if(state.open.river&&!state.built.bridge)return"На реке можно построить мост. Он поможет во время дождя.";
-  if(!state.open.tower)return"Без разведки не найти Башню, горы с монетами и пещеру с наградами. Открывай туман постепенно.";
-  return"Копи ресурсы для Башни стратега.";
+  if(state.open.road&&!state.routeReady)return"Дорога — это не просто локация. Восстанови маршрут, и разведчики смогут открыть одну землю без еды.";
+  if(state.open.river&&!state.built.bridge)return"На реке нужен мост. Без него не получится объединить королевство для Башни.";
+  if(state.open.cave&&state.puzzleCount<2)return"Пещера нужна для финала: реши 2 загадки и получи Печать мудрости.";
+  if(!state.open.tower)return"Башня откроется только после исследования остальных земель. Открывай туман постепенно.";
+  if(!canBuildTower())return"Для Башни нужны не только ресурсы. Нажми на Башню и проверь, каких печатей не хватает.";
+  return"Все условия собраны. Можно строить Башню стратега.";
 }
 function openTip(){showModal(`<h3>📜 Совет</h3><p>${smartTip()}</p>`,[{text:"Понял",cls:"green",fn:closeModal}])}
 
@@ -769,8 +850,41 @@ function closeMenu(){
   const m=document.getElementById("menu");
   if(m)m.classList.add("hidden");
 }
+
+function towerChecklist(){
+  const openedAll=places.every(p=>state.open[p.id]);
+  const bridge=!!state.built.bridge;
+  const people=!!state.built.house || state.helperCount>=1;
+  const wisdom=state.puzzleCount>=2;
+  const supplies=canPay({wood:5,food:5,coins:3,ideas:3});
+  return [
+    {id:"map", ok:openedAll, text:"🗺 Открыть всю карту"},
+    {id:"route", ok:!!state.routeReady, text:"🛤 Восстановить старую дорогу разведчиков"},
+    {id:"bridge", ok:bridge, text:"🌉 Построить мост"},
+    {id:"people", ok:people, text:"🛖 Получить помощь жителей"},
+    {id:"wisdom", ok:wisdom, text:"🕯 Решить 2 загадки в пещере"},
+    {id:"supplies", ok:supplies, text:"🎒 Собрать ресурсы: 🪵5 🍎5 🪙3 ⭐3"}
+  ];
+}
+function canBuildTower(){
+  return towerChecklist().every(x=>x.ok);
+}
+function towerChecklistHtml(){
+  return `<div class="sealList">`+towerChecklist().map(x=>`<div class="sealItem ${x.ok?"done":"miss"}">${x.ok?"✅":"🔒"} ${x.text}</div>`).join("")+`</div>`;
+}
+function openTowerRequirements(){
+  showModal(`<h3>⭐ Башня стратега</h3>
+    <img class="modalEventImg" src="building_tower.png" alt="">
+    <p>Башня строится только тогда, когда герой снова связал королевство: открыл земли, восстановил дорогу разведчиков, построил мост, получил помощь жителей и принёс мудрость из пещеры.</p>
+    ${towerChecklistHtml()}`,[
+      {text:"Понятно",cls:"green",fn:closeModal}
+    ]);
+}
+
 function renderSide(){
-  document.getElementById("todayText").textContent=isNight()?"Наступил вечер. Нажми «Закончить день».":"Сегодня у тебя "+state.moves+" хода(ов). "+smartTip();
+  document.getElementById("todayText").innerHTML=isNight()
+    ?"Наступил вечер. Нажми «Закончить день»."
+    :"Сегодня у тебя "+state.moves+" хода(ов). "+smartTip()+(state.open.tower?towerChecklistHtml():"");
 
   const built=buildings.filter(b=>state.built[b.id]&&b.id!=="towerBuild");
   document.getElementById("builtBadges").innerHTML=built.length
@@ -794,7 +908,7 @@ function renderSide(){
   document.getElementById("tab_log").innerHTML=state.log.map(x=>`<div class="item">${x}</div>`).join("");
 }
 function showTab(n){["builds","medals","log"].forEach(x=>document.getElementById("tab_"+x).classList.toggle("show",x===n))}
-function openRules(){showModal(`<h3><img class="tabIcon" src="icon_rules.png"> Как играть</h3><p><b>Цель:</b> исследовать карту, помогать жителям, строить здания и построить Башню стратега.</p><p><b>Ходы:</b> в начале 3 действия в день. После Домика жителей — 4. Завершить день можно только когда все ходы потрачены.</p><p><b>Домик жителей:</b> это не отдельная локация, он строится внутри Деревни.</p><p><b>Скрытые зоны:</b> они прикрыты туманом и замком. Нажми на такую область и отправь разведчика.</p>`,[{text:"Понятно",cls:"green",fn:closeModal}])}
+function openRules(){showModal(`<h3><img class="tabIcon" src="icon_rules.png"> Как играть</h3><p><b>Цель:</b> исследовать карту, помогать жителям, строить здания и построить Башню стратега.</p><p><b>Ходы:</b> в начале 3 действия в день. После Домика жителей — 4. Завершить день можно только когда все ходы потрачены.</p><p><b>Домик жителей:</b> это не отдельная локация, он строится внутри Деревни.</p><p><b>Башня:</b> её нельзя построить только за ресурсы. Нужно открыть всю карту, восстановить дорогу разведчиков, построить мост, получить помощь жителей и решить 2 загадки в пещере.</p><p><b>Скрытые зоны:</b> они прикрыты туманом и замком. Нажми на такую область и отправь разведчика.</p>`,[{text:"Понятно",cls:"green",fn:closeModal}])}
 function openSave(){
   const code=btoa(unescape(encodeURIComponent(JSON.stringify(state))));
   showModal(`<h3>💾 Код сохранения</h3>
@@ -819,10 +933,10 @@ function copySaveCode(){
   }
 }
 function openLoad(){showModal(`<h3>📥 Загрузить игру</h3><p>Вставь сюда код, который раньше скопировала через кнопку «Сохранить».</p><textarea class="saveBox" id="loadCode"></textarea>`,[{text:"Загрузить",cls:"green",fn:()=>{try{state=JSON.parse(decodeURIComponent(escape(atob(document.getElementById("loadCode").value.trim()))));closeModal();showScreen(state.won?"victoryScreen":"gameScreen");render()}catch(e){toast("Код не подошёл")}}},{text:"Отмена",cls:"brown",fn:closeModal}])}
-function showVictory(){document.getElementById("victoryName").textContent=state.heroName;document.getElementById("victoryText").textContent="Башня стратега построена! Королевство снова стало сильным и уютным.";showScreen("victoryScreen");saveLocal()}
+function showVictory(){document.getElementById("victoryName").textContent=state.heroName;document.getElementById("victoryText").textContent="Башня стратега построена! Герой открыл земли, помог жителям, прошёл испытания и снова сделал королевство сильным и уютным.";showScreen("victoryScreen");saveLocal()}
 function continueAfterWin(){showScreen("gameScreen");render()}
 function restartAsk(){showModal(`<h3>Начать заново?</h3><p>Прогресс сбросится.</p>`,[{text:"Да",cls:"danger",fn:()=>{closeModal();restart()}},{text:"Отмена",cls:"green",fn:closeModal}])}
-function restart(){localStorage.removeItem("ksAssetGame");state={started:false,heroName:"Герой",day:1,moves:3,maxMoves:3,wood:2,food:2,coins:0,ideas:0,open:{forest:true,field:true,castle:true},built:{},medals:{},selected:"castle",heroAt:"castle",blockedForest:false,helperCount:0,puzzleCount:0,exploreCount:0,won:false,log:["Игра началась. Открыты лес, поле и замок."]};showScreen("startScreen")}
+function restart(){localStorage.removeItem("ksAssetGame");state={started:false,heroName:"Герой",day:1,moves:3,maxMoves:3,wood:2,food:2,coins:0,ideas:0,open:{forest:true,field:true,castle:true},built:{},medals:{},selected:"castle",heroAt:"castle",blockedForest:false,routeReady:false,helperCount:0,puzzleCount:0,exploreCount:0,won:false,log:["Игра началась. Открыты лес, поле и замок."]};showScreen("startScreen")}
 function showModal(html,buttons){const w=document.getElementById("modalWrap"),m=document.getElementById("modal");m.innerHTML=`<div class="closeBtn" onclick="closeModal()">×</div>`+html+`<div class="modalBtns" id="modalBtns"></div>`;const b=m.querySelector("#modalBtns");buttons.forEach(x=>{const e=document.createElement("button");e.textContent=x.text;e.className=x.cls||"";e.onclick=x.fn;b.appendChild(e)});w.classList.add("show")}
 function closeModal(){document.getElementById("modalWrap").classList.remove("show")}
 window.addEventListener("resize",renderMenu);
