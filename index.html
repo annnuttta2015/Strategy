@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Королевство маленького стратега</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --ink:#382515;--muted:#725840;--paper:#f6e6bd;--paper2:#ecd3a0;
+  --gold:#c78b34;--gold2:#9b641f;--green:#779a5f;--green2:#55743d;
+  --blue:#5f91b4;--blue2:#3f6e91;--brown:#8c6947;--brown2:#60462e;
+}
+body{margin:0;min-height:100vh;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:linear-gradient(140deg,#e4c891,#bd9361)}
+button,input{font:inherit}
+button{border:0;border-radius:14px;padding:9px 12px;font-weight:900;color:white;cursor:pointer;background:linear-gradient(180deg,var(--gold),var(--gold2));box-shadow:0 5px 0 #744916,0 8px 12px rgba(50,30,10,.18)}
+button.green{background:linear-gradient(180deg,var(--green),var(--green2));box-shadow:0 5px 0 #3c5528,0 8px 12px rgba(50,30,10,.18)}
+button.blue{background:linear-gradient(180deg,var(--blue),var(--blue2));box-shadow:0 5px 0 #2d526e,0 8px 12px rgba(50,30,10,.18)}
+button.brown{background:linear-gradient(180deg,var(--brown),var(--brown2));box-shadow:0 5px 0 #44311f,0 8px 12px rgba(50,30,10,.18)}
+button.danger{background:linear-gradient(180deg,#c67661,#974637);box-shadow:0 5px 0 #692b23,0 8px 12px rgba(50,30,10,.18)}
+button:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+.screen{display:none}.screen.show{display:block}
+
+.start{min-height:100vh;display:none;align-items:center;justify-content:center;padding:24px;background:url("map.png") center/cover no-repeat}
+.start.show{display:flex}
+.start:before{content:"";position:fixed;inset:0;background:rgba(30,18,8,.35)}
+.startCard{position:relative;width:min(780px,92vw);background:rgba(255,245,220,.93);border:2px solid rgba(96,61,28,.2);border-radius:28px;padding:22px;box-shadow:0 24px 50px rgba(0,0,0,.32)}
+.startCard h1{margin:0 0 8px;font-size:34px}.story{color:var(--muted);line-height:1.45}
+.nameRow{display:grid;grid-template-columns:1fr auto;gap:10px;margin-top:14px}
+.nameRow input{border:2px solid rgba(96,61,28,.18);border-radius:16px;padding:12px 14px;background:#fffaf0;font-weight:800;outline:none}
+
+.app{max-width:1480px;margin:0 auto;padding:14px}
+.topbar{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;background:rgba(255,245,220,.94);border:2px solid rgba(96,61,28,.12);border-radius:24px;padding:10px 12px;margin-bottom:10px;box-shadow:0 12px 24px rgba(50,30,10,.18)}
+.brand{font-weight:950;font-size:21px;white-space:nowrap}
+.resources{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.pill{background:#fffaf0;border:1px solid rgba(96,61,28,.12);border-radius:999px;padding:7px 10px;font-weight:900;display:flex;align-items:center;gap:5px}.resIcon{width:22px;height:22px;object-fit:contain}
+.topBtns{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.objectives{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.objective{background:rgba(255,245,220,.94);border:1px solid rgba(96,61,28,.12);border-radius:999px;padding:8px 12px;font-weight:850;font-size:13px}
+
+.layout{display:grid;grid-template-columns:minmax(850px,1.65fr) minmax(260px,.35fr);gap:12px}
+.panel{background:rgba(255,245,220,.94);border:2px solid rgba(96,61,28,.12);border-radius:28px;box-shadow:0 18px 30px rgba(50,30,10,.18);overflow:hidden}
+.mapHead{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px 8px}
+.mapTitle{font-weight:950;font-size:22px}.mapSub{color:var(--muted);font-size:13px}
+.mapWrap{position:relative;margin:0 12px 12px;border-radius:24px;overflow:hidden;border:3px solid rgba(96,61,28,.18);background:#ead3a0}
+.mapImg{display:block;width:100%;height:auto}
+.mapOverlay{position:absolute;inset:0}
+.mapOverlay.night:after{content:"";position:absolute;inset:0;background:rgba(6,15,42,.44);z-index:8;pointer-events:none}
+.hotspot{position:absolute;width:92px;height:74px;transform:translate(-50%,-50%);border-radius:20px;border:3px solid rgba(255,255,255,.0);cursor:pointer;z-index:4}
+.hotspot:hover,.hotspot.selected{border-color:#ffd56d;background:rgba(255,235,160,.18);box-shadow:0 0 0 4px rgba(255,210,90,.18)}
+.hotspot.locked{filter:grayscale(.25)}
+.hero{position:absolute;width:52px;height:58px;display:flex;align-items:center;justify-content:center;z-index:6;pointer-events:none;transition:left .28s ease,top .28s ease}.hero img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 6px 8px rgba(40,24,10,.25))}
+
+.menu{position:absolute;z-index:10;width:315px;max-width:calc(100% - 24px);background:rgba(255,249,236,.97);border:2px solid rgba(96,61,28,.14);border-radius:22px;box-shadow:0 18px 30px rgba(50,30,10,.24);padding:12px;backdrop-filter:blur(5px)}
+.menu.hidden{display:none}.menuTitle{font-size:18px;font-weight:950}.menuText{color:var(--muted);font-size:13px;line-height:1.35;margin-top:4px}
+.actions,.quick{display:flex;flex-wrap:wrap;gap:8px;margin-top:9px}
+.nightBox{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:12;width:min(520px,88%);background:rgba(255,249,236,.96);border:2px solid rgba(96,61,28,.14);border-radius:26px;text-align:center;padding:18px;display:none;box-shadow:0 24px 45px rgba(0,0,0,.25)}
+.mapOverlay.night .nightBox{display:block}.nightBox h3{margin:0 0 8px;font-size:25px}.nightBox p{color:var(--muted);margin:0 0 12px}
+
+.sideHead{padding:14px;border-bottom:1px solid rgba(96,61,28,.08)}.sideTitle{font-size:20px;font-weight:950}.sideSub{color:var(--muted);font-size:13px;margin-top:4px}
+.sideBody{padding:12px;display:grid;gap:10px}.card{background:#fffaf0;border:1px solid rgba(96,61,28,.12);border-radius:18px;padding:10px}
+.miniTitle{font-weight:950;margin-bottom:5px}.cardText{color:var(--muted);font-size:13px;line-height:1.35}.badges{display:flex;flex-wrap:wrap;gap:6px}
+.badge{background:#f0dfb8;border-radius:999px;padding:4px 8px;font-size:12px;font-weight:900}
+.tabRow{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:8px}.tabRow button{font-size:12px;padding:8px 9px}
+.tabPane{display:none}.tabPane.show{display:block}.item{background:#fffdf8;border:1px solid rgba(96,61,28,.12);border-radius:15px;padding:8px;margin-top:7px}
+.itemTitle{font-weight:950;font-size:13px}.itemText{color:var(--muted);font-size:12px;line-height:1.25;margin-top:3px}
+.medalGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.medal{opacity:.35;text-align:center}.medal.got{opacity:1;background:#ffe5a6;border-color:#d49b42}
+
+.modalWrap{position:fixed;inset:0;background:rgba(31,20,11,.48);display:none;align-items:center;justify-content:center;padding:14px;z-index:50}.modalWrap.show{display:flex}
+.modal{width:min(620px,100%);max-height:88vh;overflow:auto;background:var(--paper);border-radius:28px;border:2px solid rgba(255,255,255,.75);padding:18px;box-shadow:0 26px 50px rgba(0,0,0,.25)}
+.modal h3{margin:0 0 8px;font-size:24px}.modal p{color:var(--muted);line-height:1.42}.modalBtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.saveBox{width:100%;min-height:92px;border-radius:16px;border:1px solid rgba(96,61,28,.16);padding:10px;background:#fffdf8;color:var(--ink);font-size:13px}
+.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#402c1c;color:#fff8ea;border-radius:999px;padding:10px 14px;font-weight:950;display:none;z-index:70}.toast.show{display:block}
+
+.victory{min-height:100vh;background:url("map.png") center/cover no-repeat;display:none;align-items:center;justify-content:center;padding:24px}.victory.show{display:flex}.victory:before{content:"";position:fixed;inset:0;background:rgba(30,18,8,.28)}
+.victoryCard{position:relative;width:min(760px,90vw);background:rgba(255,245,220,.93);border-radius:28px;padding:22px;box-shadow:0 24px 50px rgba(0,0,0,.32)}
+@media(max-width:1260px){.layout{grid-template-columns:1fr}.brand{white-space:normal}.topbar{grid-template-columns:1fr;text-align:center}.topBtns{justify-content:center}}
+@media(max-width:720px){.app{padding:8px}.nameRow{grid-template-columns:1fr}.hotspot{width:72px;height:60px}.menu{left:10px!important;right:10px;width:auto}.mapTitle{font-size:19px}}
+</style>
+</head>
+<body>
+<div id="startScreen" class="screen start">
+  <div class="startCard">
+    <h1>🏰 Королевство маленького стратега</h1>
+    <div class="story">Когда-то это королевство было сильным и уютным. Но часть земель скрылась в тумане, дороги забыты, а жителям нужна помощь.<br><br>Юному герою предстоит исследовать карту, собрать ресурсы, построить важные здания и возвести Башню стратега.</div>
+    <div class="nameRow"><input id="heroNameInput" placeholder="Как зовут нашего героя?" maxlength="18"><button class="green" onclick="startAdventure()">Начать путешествие</button></div>
+  </div>
+</div>
+
+<div id="gameScreen" class="screen">
+  <div class="app">
+    <div class="topbar">
+      <div class="brand">🏰 <span id="heroNameTop">Герой</span> и Королевство</div>
+      <div class="resources">
+        <div class="pill"><img class="resIcon" src="icon_wood.png" alt=""> <b id="wood">0</b></div>
+        <div class="pill"><img class="resIcon" src="icon_food.png" alt=""> <b id="food">0</b></div>
+        <div class="pill"><img class="resIcon" src="icon_coin.png" alt=""> <b id="coins">0</b></div>
+        <div class="pill"><img class="resIcon" src="icon_idea.png" alt=""> <b id="ideas">0</b></div>
+        <div class="pill"><img class="resIcon" src="icon_steps.png" alt=""> <b id="moves">3</b></div>
+        <div class="pill"><img class="resIcon" src="icon_day.png" alt=""> <b id="dayText">1/7</b></div>
+      </div>
+      <div class="topBtns"><button class="blue" onclick="openSave()">Сохранить</button><button class="blue" onclick="openLoad()">Загрузить</button><button class="brown" onclick="openRules()">Правила</button></div>
+    </div>
+    <div id="objectives" class="objectives"></div>
+    <div class="layout">
+      <div class="panel">
+        <div class="mapHead"><div><div class="mapTitle">Карта королевства</div><div class="mapSub">Картинка совпадает с игровыми локациями</div></div><button class="danger" onclick="restartAsk()">Новая игра</button></div>
+        <div class="mapWrap">
+          <img class="mapImg" src="map.png" alt="Карта королевства">
+          <div id="mapOverlay" class="mapOverlay">
+            <div id="hotspots"></div>
+            <div id="hero" class="hero"><img src="hero_idle.png" alt=""></div>
+            <div id="menu" class="menu hidden"><div id="menuTitle" class="menuTitle"></div><div id="menuText" class="menuText"></div><div id="actions" class="actions"></div><div class="quick"><button class="green" onclick="endDay()">Закончить день</button><button class="blue" onclick="openTip()">Совет</button></div></div>
+            <div class="nightBox"><h3>🌙 День закончился</h3><p><span id="heroNameNight">Герой</span> устал и готов отдохнуть.</p><button class="green" onclick="endDay()">🌙 Закончить день</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="sideHead"><div class="sideTitle">Коротко</div><div class="sideSub">Действия — на карте. Тут прогресс и журнал.</div></div>
+        <div class="sideBody">
+          <div class="card"><div class="miniTitle">Сегодня</div><div id="todayText" class="cardText"></div></div>
+          <div class="card"><div class="miniTitle">Построено</div><div id="builtBadges" class="badges"></div></div>
+          <div class="card"><div class="tabRow"><button class="green" onclick="showTab('builds')">Постройки</button><button class="green" onclick="showTab('medals')">Медали</button><button class="green" onclick="showTab('log')">Журнал</button></div><div id="tab_builds" class="tabPane show"></div><div id="tab_medals" class="tabPane"></div><div id="tab_log" class="tabPane"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="victoryScreen" class="screen victory"><div class="victoryCard"><h1>👑 Победа, <span id="victoryName">герой</span>!</h1><div class="story" id="victoryText"></div><div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="green" onclick="continueAfterWin()">Продолжить</button><button class="brown" onclick="restart()">Новая игра</button></div></div></div>
+<div id="modalWrap" class="modalWrap"><div id="modal" class="modal"></div></div><div id="toast" class="toast"></div>
+
+<script>
+const places=[
+{id:"forest",x:15,y:29,emoji:"🌲",name:"Лес",short:"дерево"},
+{id:"field",x:14,y:52,emoji:"🌾",name:"Поле",short:"еда"},
+{id:"castle",x:40,y:35,emoji:"🏰",name:"Замок",short:"идеи"},
+{id:"village",x:58,y:58,emoji:"🛖",name:"Деревня",short:"жители"},
+{id:"river",x:71,y:47,emoji:"🌉",name:"Река",short:"мост"},
+{id:"road",x:76,y:75,emoji:"🛤",name:"Дорога",short:"разведка"},
+{id:"mountains",x:61,y:24,emoji:"⛰",name:"Горы",short:"монеты"},
+{id:"tower",x:87,y:30,emoji:"⭐",name:"Башня",short:"финал"},
+{id:"cave",x:14,y:77,emoji:"🕯",name:"Пещера",short:"загадки"}
+];
+const revealOrder=["village","river","road","mountains","cave","tower"];
+const descriptions={forest:"Здесь добывают дерево. Лесопилка сделает лес сильнее.",field:"Здесь собирают еду. Ферма даст больше урожая.",castle:"Центр королевства. Здесь появляются идеи и строится стена.",village:"Здесь живут помощники. Домик жителей даст +1 ход каждый день.",river:"Тут можно построить мост. Он поможет во время дождя.",road:"С дороги удобно быстро открывать новые земли.",mountains:"В горах можно искать монеты.",cave:"В пещере спрятаны загадки и награды.",tower:"Здесь строится Башня стратега — финальная цель."};
+const buildings=[{id:"sawmill",icon:"🪵",name:"Лесопилка",place:"forest",cost:{wood:3},text:"Лес даёт 3 дерева.",medal:"woodmaster"},{id:"farm",icon:"🌾",name:"Ферма",place:"field",cost:{wood:2,food:2},text:"Поле даёт 3 еды.",medal:"harvest"},{id:"house",icon:"🛖",name:"Домик жителей",place:"village",cost:{wood:3,coins:1},text:"+1 ход каждый день.",medal:"people"},{id:"bridge",icon:"🌉",name:"Мост",place:"river",cost:{wood:4},text:"Защита от дождя.",medal:"bridge"},{id:"wall",icon:"🛡",name:"Стена",place:"castle",cost:{wood:3,coins:2},text:"Защита от ветра.",medal:"wall"},{id:"towerBuild",icon:"⭐",name:"Башня стратега",place:"tower",cost:{wood:5,food:5,coins:3,ideas:3},text:"Победа.",medal:"strategist"}];
+const medals=[{id:"woodmaster",icon:"🪵",name:"Лесной мастер"},{id:"harvest",icon:"🌾",name:"Хранитель урожая"},{id:"people",icon:"🛖",name:"Друг жителей"},{id:"bridge",icon:"🌉",name:"Мостостроитель"},{id:"wall",icon:"🛡",name:"Защитник замка"},{id:"explorer",icon:"🔍",name:"Разведчик"},{id:"allmap",icon:"🗺",name:"Вся карта"},{id:"puzzler",icon:"🕯",name:"Мудрая голова"},{id:"strategist",icon:"👑",name:"Маленький стратег"}];
+const objectivesByDay={1:["🎯 Собери дерево и еду","🎯 Построй первое улучшение"],2:["🎯 Разведай туман","🎯 Найди деревню жителей"],3:["🎯 Помоги жителям","🎯 Подумай про Домик жителей"],4:["🎯 Открой реку или дорогу","🎯 Накопи дерево на мост"],5:["🎯 Исследуй горы или пещеру","🎯 Собери монеты"],6:["🎯 Подготовь ресурсы","🎯 Ищи Башню стратега"],7:["🎯 Собери всё нужное","🎯 Построй Башню стратега"]};
+let state={started:false,heroName:"Герой",day:1,moves:3,maxMoves:3,wood:2,food:2,coins:0,ideas:0,open:{forest:true,field:true,castle:true},built:{},medals:{},selected:"castle",heroAt:"castle",blockedForest:false,helperCount:0,puzzleCount:0,exploreCount:0,won:false,log:["Игра началась. Открыты лес, поле и замок."]};
+function saveLocal(){localStorage.setItem("ksAssetGame",JSON.stringify(state))}
+function loadLocal(){const raw=localStorage.getItem("ksAssetGame");if(raw){try{state={...state,...JSON.parse(raw)}}catch(e){}}}
+function showScreen(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("show"));document.getElementById(id).classList.add("show")}
+function startAdventure(){const val=document.getElementById("heroNameInput").value.trim();state.heroName=val||"Герой";state.started=true;addLog(state.heroName+" отправляется в путь.");showScreen("gameScreen");render();showModal(`<h3>☀️ Первое утро</h3><p>${state.heroName} стоит у замка. Сначала нужно собрать дерево, еду и идеи, а потом открыть туман.</p>`,[{text:"Начать",cls:"green",fn:closeModal}])}
+function toast(t){const x=document.getElementById("toast");x.textContent=t;x.classList.add("show");setTimeout(()=>x.classList.remove("show"),1800)}
+function addLog(t){state.log.unshift("День "+state.day+": "+t);if(state.log.length>70)state.log.pop()}
+function resCost(c){const a=[];if(c.wood)a.push("🪵 "+c.wood);if(c.food)a.push("🍎 "+c.food);if(c.coins)a.push("🪙 "+c.coins);if(c.ideas)a.push("⭐ "+c.ideas);return a.join(" · ")}
+function canPay(c){return(!c.wood||state.wood>=c.wood)&&(!c.food||state.food>=c.food)&&(!c.coins||state.coins>=c.coins)&&(!c.ideas||state.ideas>=c.ideas)}
+function pay(c){state.wood-=c.wood||0;state.food-=c.food||0;state.coins-=c.coins||0;state.ideas-=c.ideas||0}
+function spendMove(){if(state.moves<=0){toast("Наступил вечер");return false}state.moves--;return true}
+function isNight(){return state.moves<=0&&!state.won}
+function addMedal(id){if(!state.medals[id]){state.medals[id]=true;const m=medals.find(x=>x.id===id);if(m)toast("Медаль: "+m.icon+" "+m.name)}}
+function checkMedals(){const n=places.filter(p=>state.open[p.id]).length;if(n>=6)addMedal("explorer");if(n===9)addMedal("allmap");if(state.puzzleCount>=2)addMedal("puzzler")}
+function render(){document.getElementById("heroNameTop").textContent=state.heroName;document.getElementById("heroNameNight").textContent=state.heroName;["wood","food","coins","ideas","moves"].forEach(id=>document.getElementById(id).textContent=state[id]);document.getElementById("dayText").textContent=state.won?"✓":(state.day<=7?state.day+"/7":state.day+"/∞");document.getElementById("mapOverlay").classList.toggle("night",isNight());renderObjectives();renderHotspots();renderMenu();renderHero();renderSide();saveLocal()}
+function renderObjectives(){const box=document.getElementById("objectives");box.innerHTML="";(objectivesByDay[Math.min(state.day,7)]||["🎯 Продолжай развивать королевство","🎯 Собери все медали"]).forEach(t=>{const d=document.createElement("div");d.className="objective";d.textContent=t;box.appendChild(d)});const e=document.createElement("div");e.className="objective";e.textContent=state.won?"👑 Башня построена":"🏁 Финал — Башня стратега";box.appendChild(e)}
+function renderHotspots(){const wrap=document.getElementById("hotspots");wrap.innerHTML="";places.forEach(p=>{const d=document.createElement("div");d.className="hotspot"+(state.selected===p.id?" selected":"")+(state.open[p.id]?"":" locked");d.style.left=p.x+"%";d.style.top=p.y+"%";d.title=p.name;d.onclick=()=>{if(isNight())return;state.selected=p.id;state.heroAt=p.id;render()};wrap.appendChild(d)})}
+function renderHero(){const p=places.find(x=>x.id===state.heroAt)||places.find(x=>x.id==="castle");const h=document.getElementById("hero");h.style.left=`calc(${p.x}% - 26px)`;h.style.top=`calc(${p.y}% - 70px)`}
+function positionMenu(p){const m=document.getElementById("menu"),wrap=document.querySelector(".mapWrap");if(!p||isNight()){m.classList.add("hidden");return}m.classList.remove("hidden");const rect=wrap.getBoundingClientRect();const menuW=Math.min(315,rect.width-24);let left=p.x/100*rect.width+70,top=p.y/100*rect.height-40;if(left+menuW>rect.width-12)left=p.x/100*rect.width-menuW-70;if(left<12)left=12;if(top<45)top=45;if(top>rect.height-190)top=rect.height-190;m.style.left=left+"px";m.style.top=top+"px"}
+function renderMenu(){const title=document.getElementById("menuTitle"),text=document.getElementById("menuText"),actions=document.getElementById("actions");actions.innerHTML="";const p=places.find(x=>x.id===state.selected);positionMenu(p);if(!p||isNight())return;if(!state.open[p.id]){title.textContent="☁️ Туман";text.textContent="Отправь разведчика. Нужно 🍎 1 и 👣 1.";addAction("🔍 Разведать","blue",()=>explore(p.id),state.food<1);return}title.textContent=p.emoji+" "+p.name;text.textContent=descriptions[p.id]+" Осталось ходов: "+state.moves+".";if(p.id==="forest"){addAction("Собрать дерево","green",collectWood);addAction("Построить лесопилку","brown",()=>build("sawmill"),state.built.sawmill||!canPay({wood:3}))}if(p.id==="field"){addAction("Собрать еду","green",collectFood);addAction("Построить ферму","brown",()=>build("farm"),state.built.farm||!canPay({wood:2,food:2}))}if(p.id==="castle"){addAction("Взять идею","green",collectIdea);addAction("Построить стену","brown",()=>build("wall"),state.built.wall||!canPay({wood:3,coins:2}))}if(p.id==="village"){addAction("Помочь жителю","green",villageQuest);addAction("Построить домик жителей","brown",()=>build("house"),state.built.house||!canPay({wood:3,coins:1}))}if(p.id==="river"){if(state.built.bridge)addAction("Проверить мост","green",checkBridge);else addAction("Построить мост","brown",()=>build("bridge"),!canPay({wood:4}))}if(p.id==="road")addAction("Быстрая разведка","blue",fastExplore);if(p.id==="mountains")addAction("Искать монеты","green",collectCoins);if(p.id==="cave")addAction("Решить загадку","blue",puzzle);if(p.id==="tower")addAction("Строить башню","blue",()=>build("towerBuild"),state.built.towerBuild||!canPay({wood:5,food:5,coins:3,ideas:3}));addAction("Совет","blue",openTip)}
+function addAction(label,cls,fn,disabled){const b=document.createElement("button");b.textContent=label;b.className=cls||"";b.disabled=!!disabled;b.onclick=fn;document.getElementById("actions").appendChild(b)}
+function collectWood(){if(!spendMove())return;state.heroAt="forest";if(state.blockedForest){state.blockedForest=false;addLog("Тропинку в лес расчистили после дождя.")}else{const n=state.built.sawmill?3:2;state.wood+=n;addLog("В лесу собрали 🪵 "+n+".")}render()}
+function collectFood(){if(!spendMove())return;state.heroAt="field";const n=state.built.farm?3:2;state.food+=n;addLog("На поле собрали 🍎 "+n+".");render()}
+function collectIdea(){if(!spendMove())return;state.heroAt="castle";state.ideas++;addLog("В замке придумали ⭐ 1 идею.");render()}
+function collectCoins(){if(!spendMove())return;state.heroAt="mountains";state.coins+=2;addLog("В горах нашли 🪙 2 монеты.");render()}
+function checkBridge(){if(!spendMove())return;state.heroAt="river";state.coins++;addLog("Жители прошли по мосту и дали 🪙 1.");render()}
+function explore(id){if(state.food<1){toast("Нужна 🍎 1 еда");return}if(!spendMove())return;state.food--;state.open[id]=true;state.selected=id;state.heroAt=id;state.exploreCount++;const p=places.find(x=>x.id===id);addLog("Разведчики открыли: "+p.emoji+" "+p.name+".");checkMedals();render()}
+function fastExplore(){if(!spendMove())return;const next=revealOrder.find(id=>!state.open[id]);if(!next){state.moves++;toast("Вся карта открыта");return}state.open[next]=true;state.selected=next;state.heroAt=next;const p=places.find(x=>x.id===next);addLog("По дороге открыли: "+p.emoji+" "+p.name+".");checkMedals();render()}
+function build(id){const b=buildings.find(x=>x.id===id);if(!state.open[b.place]){toast("Сначала открой локацию");return}if(!canPay(b.cost)){toast("Не хватает ресурсов");return}if(!spendMove())return;pay(b.cost);state.built[id]=true;state.heroAt=b.place;state.selected=b.place;if(id==="house")state.maxMoves=4;if(b.medal)addMedal(b.medal);if(id==="towerBuild"){state.won=true;addLog("Построена ⭐ Башня стратега!");render();showVictory();return}addLog("Построено: "+b.icon+" "+b.name+".");if(id==="house")showModal(`<h3>🛖 Домик жителей построен!</h3><p>Теперь каждый новый день будет начинаться с 4 действий.</p>`,[{text:"Отлично",cls:"green",fn:closeModal}]);render()}
+function villageQuest(){if(!spendMove())return;state.heroAt="village";const q=[{text:"Булочнику нужны 🍎 2 еды. Он даст монеты.",can:()=>state.food>=2,yes:"Дать еду",do:()=>{state.food-=2;state.coins+=3;addLog("Булочник отблагодарил: +🪙 3.")}},{text:"Мастеру нужны 🪵 2 дерева. Он привезёт еду.",can:()=>state.wood>=2,yes:"Дать дерево",do:()=>{state.wood-=2;state.food+=3;addLog("Мастер помог: +🍎 3.")}},{text:"Сова меняет 🪙 1 на ⭐ 2 идеи.",can:()=>state.coins>=1,yes:"Обменять",do:()=>{state.coins--;state.ideas+=2;addLog("Сова поделилась идеями: +⭐ 2.")}}][state.helperCount%3];showModal(`<h3>🤝 Просьба жителя</h3><p>${q.text}</p>`,[{text:q.yes,cls:"green",fn:()=>{if(!q.can()){toast("Не хватает ресурсов");return}q.do();state.helperCount++;closeModal();render()}},{text:"Позже",cls:"brown",fn:()=>{addLog("Жителю пообещали помочь позже.");closeModal();render()}}])}
+function puzzle(){if(!spendMove())return;state.heroAt="cave";const p=[{q:"У тебя 2 дерева. Лес даст ещё 2. Хватит ли на мост за 4?",a:["Да","Нет"],ok:0,r:()=>{state.ideas++;state.wood++}},{q:"Куда идти за едой для фермы?",a:["В лес","На поле","В замок"],ok:1,r:()=>{state.food+=2}},{q:"Для башни не хватает идей. Куда идти?",a:["В замок","На реку","В горы"],ok:0,r:()=>{state.ideas+=2}}][state.puzzleCount%3];showModal(`<h3>🕯 Загадка</h3><p>${p.q}</p>`,p.a.map((ans,i)=>({text:ans,cls:i===p.ok?"green":"brown",fn:()=>{if(i===p.ok){p.r();state.puzzleCount++;addLog("Загадка решена!");checkMedals()}else addLog("Ответ не подошёл.");closeModal();render()}})))}
+function endDay(){if(state.won){showVictory();return}const next=()=>{state.day++;state.moves=state.maxMoves;render()};const e=(state.day-1)%5;if(e===0){if(state.built.bridge){state.coins++;addLog("Дождь не помешал мосту: +🪙 1.");nightEvent("Дождь","Мост помог жителям. Получено: 🪙 1.",next)}else{state.blockedForest=true;addLog("Дождь размыл тропинку к лесу.");nightEvent("Дождь","Тропинка к лесу размокла.",next)}}else if(e===1){const n=state.built.farm?3:1;state.food+=n;addLog("Урожай: +🍎 "+n+".");nightEvent("Урожай","Получено: 🍎 "+n+".",next)}else if(e===2){state.ideas++;addLog("Сова принесла идею: +⭐ 1.");nightEvent("Сова","Получено: ⭐ 1.",next)}else if(e===3){showModal(`<h3>🎁 Старый сундук</h3><p>Что взять?</p>`,[{text:"🪙 2 монеты",cls:"green",fn:()=>{state.coins+=2;addLog("Из сундука взяли 🪙 2.");closeModal();next()}},{text:"⭐ 2 идеи",cls:"blue",fn:()=>{state.ideas+=2;addLog("Из сундука взяли ⭐ 2.");closeModal();next()}}])}else{if(state.built.wall){addLog("Стена защитила склады.");nightEvent("Ветер","Стена защитила склады.",next)}else{state.wood=Math.max(0,state.wood-1);addLog("Ветер унёс 🪵 1.");nightEvent("Ветер","Потеряно: 🪵 1.",next)}}}
+function nightEvent(t,txt,done){showModal(`<h3>🌙 ${t}</h3><p>${txt}</p><p><b>☀️ Наступает новый день.</b></p>`,[{text:"Новое утро",cls:"green",fn:()=>{closeModal();done()}}])}
+function smartTip(){if(!state.open.village)return"Разведай новые земли. Где-то рядом скрыта деревня жителей.";if(state.open.village&&!state.built.house)return"В деревне можно построить Домик жителей. Он даст +1 ход каждый день.";if(state.open.river&&!state.built.bridge)return"На реке можно построить мост. Он поможет во время дождя.";if(!state.open.tower)return"Продолжай исследовать карту. Башня ещё в тумане.";return"Копи ресурсы для Башни стратега."}
+function openTip(){showModal(`<h3>📜 Совет</h3><p>${smartTip()}</p>`,[{text:"Понял",cls:"green",fn:closeModal}])}
+function renderSide(){document.getElementById("todayText").textContent=isNight()?"Наступил вечер. Нажми «Закончить день».":"Сегодня у тебя "+state.moves+" хода(ов). "+smartTip();const built=buildings.filter(b=>state.built[b.id]&&b.id!=="towerBuild");document.getElementById("builtBadges").innerHTML=built.length?built.map(b=>`<span class="badge">${b.icon} ${b.name}</span>`).join(""):`<span class="badge">Пока ничего</span>`;document.getElementById("tab_builds").innerHTML=buildings.map(b=>`<div class="item"><div class="itemTitle">${b.icon} ${b.name}</div><div class="itemText">Где: ${places.find(p=>p.id===b.place).name}</div><div class="itemText">Цена: ${resCost(b.cost)}</div><div class="itemText">${b.text}</div></div>`).join("");document.getElementById("tab_medals").innerHTML=`<div class="medalGrid">${medals.map(m=>`<div class="item medal ${state.medals[m.id]?"got":""}"><div style="font-size:23px">${m.icon}</div><div class="itemTitle">${m.name}</div></div>`).join("")}</div>`;document.getElementById("tab_log").innerHTML=state.log.map(x=>`<div class="item">${x}</div>`).join("")}
+function showTab(n){["builds","medals","log"].forEach(x=>document.getElementById("tab_"+x).classList.toggle("show",x===n))}
+function openRules(){showModal(`<h3>🏰 Как играть</h3><p><b>Цель:</b> исследовать карту, помогать жителям, строить здания и построить Башню стратега.</p><p><b>Ходы:</b> в начале 3 действия в день. После Домика жителей — 4.</p><p><b>Домик жителей:</b> это не отдельная локация, он строится внутри Деревни.</p>`,[{text:"Понятно",cls:"green",fn:closeModal}])}
+function openSave(){const code=btoa(unescape(encodeURIComponent(JSON.stringify(state))));showModal(`<h3>💾 Код сохранения</h3><textarea class="saveBox" readonly>${code}</textarea>`,[{text:"Закрыть",cls:"green",fn:closeModal}])}
+function openLoad(){showModal(`<h3>📥 Загрузить игру</h3><textarea class="saveBox" id="loadCode"></textarea>`,[{text:"Загрузить",cls:"green",fn:()=>{try{state=JSON.parse(decodeURIComponent(escape(atob(document.getElementById("loadCode").value.trim()))));closeModal();showScreen(state.won?"victoryScreen":"gameScreen");render()}catch(e){toast("Код не подошёл")}}},{text:"Отмена",cls:"brown",fn:closeModal}])}
+function showVictory(){document.getElementById("victoryName").textContent=state.heroName;document.getElementById("victoryText").textContent="Башня стратега построена! Королевство снова стало сильным и уютным.";showScreen("victoryScreen");saveLocal()}
+function continueAfterWin(){showScreen("gameScreen");render()}
+function restartAsk(){showModal(`<h3>Начать заново?</h3><p>Прогресс сбросится.</p>`,[{text:"Да",cls:"danger",fn:()=>{closeModal();restart()}},{text:"Отмена",cls:"green",fn:closeModal}])}
+function restart(){localStorage.removeItem("ksAssetGame");state={started:false,heroName:"Герой",day:1,moves:3,maxMoves:3,wood:2,food:2,coins:0,ideas:0,open:{forest:true,field:true,castle:true},built:{},medals:{},selected:"castle",heroAt:"castle",blockedForest:false,helperCount:0,puzzleCount:0,exploreCount:0,won:false,log:["Игра началась. Открыты лес, поле и замок."]};showScreen("startScreen")}
+function showModal(html,buttons){const w=document.getElementById("modalWrap"),m=document.getElementById("modal");m.innerHTML=html+`<div class="modalBtns" id="modalBtns"></div>`;const b=m.querySelector("#modalBtns");buttons.forEach(x=>{const e=document.createElement("button");e.textContent=x.text;e.className=x.cls||"";e.onclick=x.fn;b.appendChild(e)});w.classList.add("show")}
+function closeModal(){document.getElementById("modalWrap").classList.remove("show")}
+window.addEventListener("resize",renderMenu);
+loadLocal();if(state.started){showScreen(state.won?"victoryScreen":"gameScreen");if(!state.won)render()}else showScreen("startScreen");
+</script>
+</body>
+</html>
