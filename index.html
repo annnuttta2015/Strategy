@@ -248,6 +248,62 @@ button:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
   filter:grayscale(.15);
 }
 
+
+/* close buttons and improved fog clusters */
+.closeBtn{
+  position:absolute;
+  top:8px;
+  right:9px;
+  width:30px;
+  height:30px;
+  border-radius:50%;
+  border:1px solid rgba(96,61,28,.16);
+  background:rgba(255,250,240,.94);
+  color:#5d4329;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:950;
+  cursor:pointer;
+  box-shadow:0 4px 8px rgba(40,24,10,.12);
+  z-index:20;
+}
+.closeBtn:hover{background:#fff3d7}
+.menu{padding-right:42px}
+.modal{position:relative}
+.fogPatch{
+  background:transparent !important;
+  box-shadow:none !important;
+  backdrop-filter:none !important;
+  width:138px !important;
+  height:110px !important;
+  pointer-events:none;
+}
+.fogCloud{
+  position:absolute;
+  border-radius:999px;
+  background:rgba(238,245,250,.96);
+  box-shadow:0 8px 14px rgba(40,24,10,.12), inset 0 0 14px rgba(255,255,255,.8);
+  animation:fogFloat 3.4s ease-in-out infinite;
+}
+.fogCloud.c1{width:76px;height:42px;left:10px;top:30px;animation-delay:0s}
+.fogCloud.c2{width:58px;height:52px;left:0;top:14px;animation-delay:.25s}
+.fogCloud.c3{width:64px;height:54px;right:8px;top:18px;animation-delay:.5s}
+.fogCloud.c4{width:90px;height:38px;left:22px;bottom:14px;animation-delay:.8s}
+.fogCloud.c5{width:54px;height:34px;right:0;bottom:28px;animation-delay:1s}
+.fogCloud.c6{width:48px;height:32px;left:44px;top:0;animation-delay:1.2s}
+.fogIcons{position:relative;z-index:5;margin-top:22px}
+.fogText{position:relative;z-index:5}
+@keyframes fogFloat{
+  0%,100%{transform:translateY(0) rotate(-1deg)}
+  50%{transform:translateY(-5px) rotate(1deg)}
+}
+.mapOverlay.night{
+  background:rgba(6,15,42,.44);
+}
+.mapOverlay.night .menu{display:none !important}
+.mapOverlay.night .nightBox{display:block !important}
+
 @media(max-width:1260px){
   .layout{grid-template-columns:1fr}
   .brand{white-space:normal}
@@ -304,7 +360,7 @@ button:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
             <div id="hotspots"></div>
             <div id="hero" class="hero"><img src="hero_idle.png" alt=""></div>
             <div id="achievementPopup" class="achievementPopup"><div id="achievementIcon" class="achievementIcon">🏅</div><div class="achievementText"><b id="achievementTitle">Медаль!</b><span id="achievementDesc">Новое достижение</span></div></div>
-            <div id="menu" class="menu hidden">
+            <div id="menu" class="menu hidden"><div class="closeBtn" onclick="event.stopPropagation(); closeMenu()">×</div>
               <div id="menuTitle" class="menuTitle"></div>
               <div id="menuText" class="menuText"></div>
               <div id="actions" class="actions"></div>
@@ -456,7 +512,10 @@ function startAdventure(){
   addLog(state.heroName+" отправляется в путь.");
   showScreen("gameScreen");
   render();
-  showModal(`<h3>☀️ Первое утро</h3><p>${state.heroName} стоит у замка. Сначала нужно собрать дерево, еду и идеи, а потом открыть туман.</p>`,[{text:"Начать",cls:"green",fn:closeModal}]);
+  showModal(`<h3>☀️ Первое утро</h3>
+  <p>${state.heroName} оказался у замка. Вокруг уже видны три безопасные земли: <b>Лес</b>, <b>Поле</b> и <b>Замок</b>.</p>
+  <p>Начни с простого: сходи в открытые земли и собери первые ресурсы. Дерево пригодится для построек, еда — для разведки, идеи — для Башни стратега.</p>
+  <p><b>Первый план:</b> собери дерево в лесу, еду на поле и идею в замке.</p>`,[{text:"Понятно, иду на карту",cls:"green",fn:closeModal}]);
 }
 function toast(t){const x=document.getElementById("toast");x.textContent=t;x.classList.add("show");setTimeout(()=>x.classList.remove("show"),1800)}
 function addLog(t){state.log.unshift("День "+state.day+": "+t);if(state.log.length>70)state.log.pop()}
@@ -468,8 +527,8 @@ function isNight(){return state.moves<=0&&!state.won}
 function updateEndDayButtons(){
   const btn=document.getElementById("endDayMenuBtn");
   if(btn){
-    btn.disabled=state.moves>0 && !state.won;
-    btn.title=state.moves>0?"Сначала потрать все ходы":"Можно завершить день";
+    btn.disabled=false;
+    btn.title=state.moves>0?"У тебя ещё есть ходы":"Можно завершить день";
   }
 }
 function addMedal(id){
@@ -527,7 +586,7 @@ function renderHotspots(){
       const builtIcon=builtHere?`<div class="placeBuiltOnMap" onclick="event.stopPropagation(); openBuildingInfo('${builtHere.id}')"><img src="${buildAsset(builtHere.id)}" alt="" title="${builtHere.name}"></div>`:"";
       d.innerHTML=`<div class="locLabel">${p.emoji} ${p.name}</div>${builtIcon}`;
     }else{
-      d.innerHTML=`<div class="fogPatch"><div class="fogCloud c1"></div><div class="fogCloud c2"></div><div class="fogCloud c3"></div><div class="fogCloud c4"></div><div class="fogIcons"><img src="icon_fog.png" alt=""><img src="icon_locked.png" alt=""></div><div class="fogText">Скрыто</div></div><div class="locLabel">☁️ Туман</div>`;
+      d.innerHTML=`<div class="fogPatch"><div class="fogCloud c1"></div><div class="fogCloud c2"></div><div class="fogCloud c3"></div><div class="fogCloud c4"></div><div class="fogCloud c5"></div><div class="fogCloud c6"></div><div class="fogIcons"><img src="icon_fog.png" alt=""><img src="icon_locked.png" alt=""></div><div class="fogText">Скрыто</div></div><div class="locLabel">☁️ Туман</div>`;
     }
     wrap.appendChild(d);
   });
@@ -560,7 +619,7 @@ function renderMenu(){
   const title=document.getElementById("menuTitle"),text=document.getElementById("menuText"),actions=document.getElementById("actions");
   actions.innerHTML="";
   const p=places.find(x=>x.id===state.selected);positionMenu(p);
-  if(!p||isNight())return;
+  if(!p||isNight()){document.getElementById("menu").classList.add("hidden");return;}
   if(!state.open[p.id]){
     title.innerHTML=`<img src="icon_fog.png" alt=""> <span>☁️ Скрытая локация</span>`;
     text.textContent="За туманом скрыта новая часть королевства. Разведчики возьмут еду в дорогу и попробуют найти путь. Цена: 🍎 1 и 👣 1.";
@@ -653,7 +712,7 @@ function puzzle(){
   })));
 }
 function endDay(){
-  if(state.moves>0&&!state.won){toast("Сначала потрать все ходы");return}
+  if(state.moves>0&&!state.won){toast("У тебя ещё есть ходы: "+state.moves+". Сначала сходи на карту.");return}
   if(state.won){showVictory();return}
   const next=()=>{state.day++;state.moves=state.maxMoves;render()}
   const e=(state.day-1)%5;
@@ -705,6 +764,11 @@ function openBuildingInfo(id){
     ]);
 }
 
+function closeMenu(){
+  state.selected=null;
+  const m=document.getElementById("menu");
+  if(m)m.classList.add("hidden");
+}
 function renderSide(){
   document.getElementById("todayText").textContent=isNight()?"Наступил вечер. Нажми «Закончить день».":"Сегодня у тебя "+state.moves+" хода(ов). "+smartTip();
 
@@ -759,7 +823,7 @@ function showVictory(){document.getElementById("victoryName").textContent=state.
 function continueAfterWin(){showScreen("gameScreen");render()}
 function restartAsk(){showModal(`<h3>Начать заново?</h3><p>Прогресс сбросится.</p>`,[{text:"Да",cls:"danger",fn:()=>{closeModal();restart()}},{text:"Отмена",cls:"green",fn:closeModal}])}
 function restart(){localStorage.removeItem("ksAssetGame");state={started:false,heroName:"Герой",day:1,moves:3,maxMoves:3,wood:2,food:2,coins:0,ideas:0,open:{forest:true,field:true,castle:true},built:{},medals:{},selected:"castle",heroAt:"castle",blockedForest:false,helperCount:0,puzzleCount:0,exploreCount:0,won:false,log:["Игра началась. Открыты лес, поле и замок."]};showScreen("startScreen")}
-function showModal(html,buttons){const w=document.getElementById("modalWrap"),m=document.getElementById("modal");m.innerHTML=html+`<div class="modalBtns" id="modalBtns"></div>`;const b=m.querySelector("#modalBtns");buttons.forEach(x=>{const e=document.createElement("button");e.textContent=x.text;e.className=x.cls||"";e.onclick=x.fn;b.appendChild(e)});w.classList.add("show")}
+function showModal(html,buttons){const w=document.getElementById("modalWrap"),m=document.getElementById("modal");m.innerHTML=`<div class="closeBtn" onclick="closeModal()">×</div>`+html+`<div class="modalBtns" id="modalBtns"></div>`;const b=m.querySelector("#modalBtns");buttons.forEach(x=>{const e=document.createElement("button");e.textContent=x.text;e.className=x.cls||"";e.onclick=x.fn;b.appendChild(e)});w.classList.add("show")}
 function closeModal(){document.getElementById("modalWrap").classList.remove("show")}
 window.addEventListener("resize",renderMenu);
 loadLocal();
